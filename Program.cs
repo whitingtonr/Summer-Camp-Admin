@@ -1,3 +1,4 @@
+using MudBlazor;
 using MudBlazor.Services;
 using Summer_Camp_Admin.Components;
 
@@ -5,8 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
+builder.Services.AddMudBlazorDialog();
 
 // Add services to the container.
+builder.Services.AddHttpClient();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 

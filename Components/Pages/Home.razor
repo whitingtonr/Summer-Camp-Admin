@@ -1,59 +1,234 @@
 ﻿@page "/"
+@using Summer_Camp_Admin.Models
+@using System.Text.Json
+@using System.Net.Http.Json
+@inject IHttpClientFactory HttpClientFactory
+@inject IDialogService DialogService
 
 <PageTitle>Home</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Hello, world!</MudText>
-<MudText Class="mb-8">Welcome to your new app, powered by MudBlazor and the .NET 9 Template!</MudText>
+<MudGrid>
+	<MudItem xs="12">
+		<MudCard>
+			<MudCardContent>
+				<MudStack Row="true">
+					<MudItem xs="3">
+						<MudCard>
+							<MudItem xs="12">
+								<MudCardContent>
+									<MudText>Actions</MudText>
+									<MudStack Row="true">
+										<MudButton Variant="Variant.Filled" Color="Color.Primary">Show All Columns</MudButton>
+										<MudButton OnClick="btnSaveSelected" Variant="Variant.Filled" Color="Color.Primary">Save Selected</MudButton>
+										<MudButton OnClick="btnMsgbox" Variant="Variant.Filled" Color="Color.Primary">test</MudButton>
+										<div class="virtualPlaceholder" style="display:block; height:48px; width:1px; background:#ffffff00;">
+										</div>
+									</MudStack>
+								</MudCardContent>
+							</MudItem>
+						</MudCard>
+					</MudItem>
+					<MudItem xs="3">
+						<MudCard>
+							<MudItem xs="12">
+								<MudCardContent>
+									<MudText>Select Random Rows</MudText>
+									<MudStack Row="true">
+										<MudButton OnClick="btnSelectRandom" Variant="Variant.Filled" Color="Color.Primary">Select</MudButton>
+										<MudNumericField T="int" @ref="@intSelectRandom" Label="Count" Variant="Variant.Text" />
+									</MudStack>
+								</MudCardContent>
+							</MudItem>
+						</MudCard>
+					</MudItem>
+					<MudItem xs="3">
+						<MudCard>
+							<MudCardContent>
+								<MudText>Change Status of Selected Rows</MudText>
+								<MudStack Row="true">
+									<MudButton Variant="Variant.Filled" OnClick="btnSetStatus" Color="Color.Primary">Change Status</MudButton>
 
-<MudAlert Severity="Severity.Normal">
-    You can find documentation and examples on our website here:
-    <MudLink Href="https://mudblazor.com" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        <b>www.mudblazor.com</b>
-    </MudLink>
-</MudAlert>
+									<MudItem>
+										<MudTextField T="string" @ref="strSetStatusTo" Label="Status" Text="i" Variant="Variant.Text" />
+									</MudItem>
+								</MudStack>
+							</MudCardContent>
+						</MudCard>
+					</MudItem>
+				</MudStack>
+			</MudCardContent>
+		</MudCard>
+	</MudItem>
+	<MudItem xs="12">
+		<MudCard>
+			<MudCardContent>
+				<MudExpansionPanels>
+					<MudExpansionPanel Text="@msg">
+						@if (_events.Count > 0)
+						{
+							<div class="d-flex">
+								<MudButton Class="mt-3" ButtonType="ButtonType.Button" Variant="Variant.Filled" OnClick="@(() => _events.Clear())">Clear</MudButton>
+							</div>
+						}
+						@foreach (var message in _events)
+						{
+							<MudText Typo="@Typo.body2">@message</MudText><br />
+						}
+					</MudExpansionPanel>
+				</MudExpansionPanels>
+			</MudCardContent>
+		</MudCard>
+	</MudItem>
+	<MudItem xs="12">
+		<MudCard>
+			<MudCardContent>
+				<MudDataGrid T="Summer_Camp_Main_Datagrid"
+				@ref="grid"
+				Dense="true"
+				Striped="true"
+				SortMode="SortMode.Multiple"
+				ColumnResizeMode="ResizeMode.Column"
+				DragDropColumnReordering="true"
+				Bordered="true"
+				Hover="true"
+				Filterable="true"
+				Hideable="true"
+				FilterMode="@DataGridFilterMode.ColumnFilterRow"
+				Items="@datagridRows"
+				MultiSelection="true"
+				RowsPerPage="100"
+				SelectedItemsChanged="@SelectedItemsChanged">
+					<Columns>
+						<SelectColumn T="Summer_Camp_Main_Datagrid" />
+						<PropertyColumn Property="x => x.ID" Title="ID" />
+						<PropertyColumn Property="x => x.FK_Status" Title="Status" />
+						<PropertyColumn Property="x => x.FK_Student_Registration__Student_ID" Title="Student&nbsp;ID" />
+						<PropertyColumn Property="x => x.WeekNbr" Title="Week" />
+						<PropertyColumn Property="x => x.SchoolName" Title="School&nbsp;Name" CellStyle="white-space: nowrap;" />
+						<PropertyColumn Property="x => x.Summer_Camp_Title" Title="Summer&nbsp;Camp&nbsp;Title" CellStyle="white-space: nowrap;" />
+						<PropertyColumn Property="x => x.School_ID" Title="School&nbsp;ID" />
+						<PropertyColumn Property="x => x.Location" Title="Location" />
+						<PropertyColumn Property="x => x.Level" Title="Level" />
+						<PropertyColumn Property="x => x.Grade" Title="Grade" />
+						<PropertyColumn Property="x => x.CalendarYR" Title="Year" />
+					</Columns>
+					<PagerContent>
+						<div style="display: flex; justify-content: center;">
+							<MudDataGridPager T="Summer_Camp_Main_Datagrid" />
+						</div>
+					</PagerContent>
+				</MudDataGrid>
+			</MudCardContent>
+		</MudCard>
+	</MudItem>
+</MudGrid>
 
-<br />
-<MudText Typo="Typo.h5" GutterBottom="true">Interactivity in this Template</MudText>
-<br />
-<MudText Typo="Typo.body2">
-    When you opt for the "Global" Interactivity Location, <br />
-    the render modes are defined in App.razor and consequently apply to all child components.<br />
-    In this case, providers are globally set in the MainLayout.<br />
-    <br />
-    On the other hand, if you choose the "Per page/component" Interactivity Location,<br />
-    it is necessary to include the <br />
-    <br />
-    &lt;MudPopoverProvider /&gt; <br />
-    &lt;MudDialogProvider /&gt; <br />
-    &lt;MudSnackbarProvider /&gt; <br />
-    <br />
-    components on every interactive page.<br />
-    <br />
-    If a render mode is not specified for a page, it defaults to Server-Side Rendering (SSR),<br />
-    similar to this page. While MudBlazor allows pages to be rendered in SSR,<br />
-    please note that interactive features, such as buttons and dropdown menus, will not be functional.
-</MudText>
+@code
+{
+	List<Summer_Camp_Main_Datagrid> datagridRows = new List<Summer_Camp_Main_Datagrid>();
+	public MudDataGrid<Summer_Camp_Main_Datagrid> grid = null;
+	public MudNumericField<int> intSelectRandom = null;
+	public MudTextField<string> strSetStatusTo = null;
+	private List<string> _events = new();
+	private string msg = "";
 
-<br />
-<MudText Typo="Typo.h5" GutterBottom="true">What's New in Blazor with the Release of .NET 9</MudText>
-<br />
+	protected override async Task OnInitializedAsync()
+	{
+		msg = "Loading...";
+		using var httpClient = HttpClientFactory.CreateClient();
+		var response = await httpClient.GetStringAsync("https://localhost:7217/api/Registrations/summercampadmingrid");
+		var jsonResponse = JsonSerializer.Deserialize<List<Summer_Camp_Main_Datagrid>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+		datagridRows = jsonResponse.ToList();
+	}
 
-<MudText Typo="Typo.h6" GutterBottom="true">Prerendering</MudText>
-<MudText Typo="Typo.body2" GutterBottom="true">
-    If you're exploring the features of .NET 9 Blazor,<br /> you might be pleasantly surprised to learn that each page is prerendered on the server,<br /> regardless of the selected render mode.<br /><br />
-    This means that you'll need to inject all necessary services on the server,<br /> even when opting for the wasm (WebAssembly) render mode.<br /><br />
-    This prerendering functionality is crucial to ensuring that WebAssembly mode feels fast and responsive,<br /> especially when it comes to initial page load times.<br /><br />
-    For more information on how to detect prerendering and leverage the RenderContext, you can refer to the following link:
-    <MudLink Href="https://github.com/dotnet/aspnetcore/issues/51468#issuecomment-1783568121" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        More details
-    </MudLink>
-</MudText>
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			msg = $"Loaded {datagridRows.Count} records";
+			StateHasChanged();
+		}
+	}
+	
+	private async void btnMsgbox()
+	{
+		var selectedItems = grid.SelectedItems;
+		bool? result = await DialogService.ShowMessageBox(
+			"Warning", 
+			(MarkupString) $"You are about to set the status of {selectedItems.Count} of {grid.FilteredItems.ToList().Count} records to {strSetStatusTo.Value.ToUpper()}!", 
+			yesText: "Continue", 
+			cancelText: "Cancel");
+		string state = result == null ? "Canceled" : "Deleted!";
+		if (result == null)
+		{
+			_events.Insert(0, "you clicked Cancel");
+		}
+		else
+		{
+			_events.Insert(0, "you clicked deleted");
+		}
+		//msg = $"{items.Count} of {grid.FilteredItems.ToList().Count} Camps Selected: ";
 
-<br />
-<MudText Typo="Typo.h6" GutterBottom="true">InteractiveAuto</MudText>
-<MudText Typo="Typo.body2">
-    A discussion on how to achieve this can be found here:
-    <MudLink Href="https://github.com/dotnet/aspnetcore/issues/51468#issue-1950424116" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        More details
-    </MudLink>
-</MudText>
+		// var dialog = DialogService.ShowMessageBox("Hello, World!", "This is a message box", yesText: "Yes", cancelText: "No");
+		// bool? result = dialog.Result;
+		_events.Insert(0, $"btnMsgbox clicked");
+		_events.Insert(0, $"dialog result: {state}");
+	}
+
+	void btnSaveSelected()
+	{
+		var selectedItems = grid.SelectedItems;
+		var jsonPayload = System.Text.Json.JsonSerializer.Serialize(selectedItems);
+
+		using var httpClient = HttpClientFactory.CreateClient();
+		var content = new StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json");
+		var httpResponseMessage = httpClient.PostAsync("https://localhost:7217/api/Registrations/summercampstatusupdate", content);
+		var response = httpResponseMessage;
+
+		if (response.Result.IsSuccessStatusCode)
+		{
+			_events.Insert(0, "Data successfully saved.");
+		}
+		else
+		{
+			_events.Insert(0, "Failed to save data.");
+		}
+
+		_events.Insert(0, $"StatusCode: {response.Result.StatusCode}");
+		_events.Insert(0, $"Content: {response.Result.RequestMessage}");
+		_events.Insert(0, $"btnSaveSelected clicked");
+		StateHasChanged();
+	} 
+
+	void btnSetStatus()
+	{
+		var selectedItems = grid.SelectedItems;
+		foreach (var item in selectedItems)
+		{
+			item.FK_Status = strSetStatusTo.Value.ToUpper();
+		}
+		_events.Insert(0, $"btnSetStatus clicked and set to {strSetStatusTo.Value.ToUpper()}");
+		StateHasChanged();
+	}
+
+	void btnSelectRandom()
+	{
+		var random = new Random();
+		var selectedItems = new HashSet<Summer_Camp_Main_Datagrid>();
+		var itemsToSelect = grid.FilteredItems.OrderBy(x => random.Next()).Take(intSelectRandom.Value).ToList();
+		foreach (var item in itemsToSelect)
+		{
+			selectedItems.Add(item);
+		}
+		grid.SelectedItems = selectedItems;
+		
+		StateHasChanged();
+	}
+
+	void SelectedItemsChanged(HashSet<Summer_Camp_Main_Datagrid> items)
+	{
+		msg = $"{items.Count} of {grid.FilteredItems.ToList().Count} Camps Selected: ";
+		_events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
+	}
+
+}
