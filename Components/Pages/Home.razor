@@ -16,10 +16,11 @@
 						<MudCard>
 							<MudItem xs="12">
 								<MudCardContent>
+									@* **************************************** *@
 									<MudText>Actions</MudText>
 									<MudStack Row="true">
 										<MudButton Variant="Variant.Filled" Color="Color.Primary">Show All Columns</MudButton>
-										<MudButton OnClick="btnSaveSelected" Variant="Variant.Filled" Color="Color.Primary">Save Selected</MudButton>
+										<MudButton OnClick="btnSaveSelected" Disabled="boolSaveButtonDisabled" Variant="Variant.Filled" Color="Color.Primary">Save Selected</MudButton>
 										<MudButton OnClick="btnMsgbox" Variant="Variant.Filled" Color="Color.Primary">test</MudButton>
 										<div class="virtualPlaceholder" style="display:block; height:48px; width:1px; background:#ffffff00;">
 										</div>
@@ -32,6 +33,7 @@
 						<MudCard>
 							<MudItem xs="12">
 								<MudCardContent>
+									@* **************************************** *@
 									<MudText>Select Random Rows</MudText>
 									<MudStack Row="true">
 										<MudButton OnClick="btnSelectRandom" Variant="Variant.Filled" Color="Color.Primary">Select</MudButton>
@@ -44,12 +46,22 @@
 					<MudItem xs="3">
 						<MudCard>
 							<MudCardContent>
+								@* ******************************************** *@
 								<MudText>Change Status of Selected Rows</MudText>
 								<MudStack Row="true">
-									<MudButton Variant="Variant.Filled" OnClick="btnSetStatus" Color="Color.Primary">Change Status</MudButton>
-
+									<MudButton Variant="Variant.Filled" Disabled="boolChangeStatusButtonDisabled" OnClick="btnSetStatus" Color="Color.Primary">Change Status</MudButton>
 									<MudItem>
-										<MudTextField T="string" @ref="strSetStatusTo" Label="Status" Text="i" Variant="Variant.Text" />
+										<MudSelect T="string"
+												   Label="Select Status"
+												   Variant="Variant.Text"
+												   @bind-Value="strSetStatusTo"
+												   @bind-Value:after="enableChangeStatusButton"
+												   Dense="true">
+											@foreach (var status in statusLookupRows)
+											{
+												<MudSelectItem T="string" Value="@status.ID_Code">@status.Desc</MudSelectItem>
+											}
+										</MudSelect>
 									</MudItem>
 								</MudStack>
 							</MudCardContent>
@@ -72,7 +84,9 @@
 						}
 						@foreach (var message in _events)
 						{
-							<MudText Typo="@Typo.body2">@message</MudText><br />
+							<MudText Typo="@Typo.body2">@message</MudText>
+
+							<br />
 						}
 					</MudExpansionPanel>
 				</MudExpansionPanels>
@@ -83,21 +97,21 @@
 		<MudCard>
 			<MudCardContent>
 				<MudDataGrid T="Summer_Camp_Main_Datagrid"
-				@ref="grid"
-				Dense="true"
-				Striped="true"
-				SortMode="SortMode.Multiple"
-				ColumnResizeMode="ResizeMode.Column"
-				DragDropColumnReordering="true"
-				Bordered="true"
-				Hover="true"
-				Filterable="true"
-				Hideable="true"
-				FilterMode="@DataGridFilterMode.ColumnFilterRow"
-				Items="@datagridRows"
-				MultiSelection="true"
-				RowsPerPage="100"
-				SelectedItemsChanged="@SelectedItemsChanged">
+							 @ref="grid"
+							 Dense="true"
+							 Striped="true"
+							 SortMode="SortMode.Multiple"
+							 ColumnResizeMode="ResizeMode.Column"
+							 DragDropColumnReordering="true"
+							 Bordered="true"
+							 Hover="true"
+							 Filterable="true"
+							 Hideable="true"
+							 FilterMode="@DataGridFilterMode.ColumnFilterRow"
+							 Items="@datagridRows"
+							 MultiSelection="true"
+							 RowsPerPage="100"
+							 SelectedItemsChanged="@SelectedItemsChanged">
 					<Columns>
 						<SelectColumn T="Summer_Camp_Main_Datagrid" />
 						<PropertyColumn Property="x => x.ID" Title="ID" />
@@ -126,9 +140,13 @@
 @code
 {
 	List<Summer_Camp_Main_Datagrid> datagridRows = new List<Summer_Camp_Main_Datagrid>();
+	List<Summer_Camp_Status_Lookup> statusLookupRows = new List<Summer_Camp_Status_Lookup>();
 	public MudDataGrid<Summer_Camp_Main_Datagrid> grid = null;
 	public MudNumericField<int> intSelectRandom = null;
-	public MudTextField<string> strSetStatusTo = null;
+	// public MudSelectItem<string> strSetStatusTo = null;
+	public string strSetStatusTo = "";
+	public bool boolChangeStatusButtonDisabled = true;
+	public bool boolSaveButtonDisabled = true;
 	private List<string> _events = new();
 	private string msg = "";
 
@@ -139,6 +157,26 @@
 		var response = await httpClient.GetStringAsync("https://localhost:7217/api/Registrations/summercampadmingrid");
 		var jsonResponse = JsonSerializer.Deserialize<List<Summer_Camp_Main_Datagrid>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 		datagridRows = jsonResponse.ToList();
+
+		using var httpClient2 = HttpClientFactory.CreateClient();
+		var response2 = await httpClient2.GetStringAsync("https://localhost:7217/api/Registrations/summercampstatuslookup");
+		var jsonResponse2 = JsonSerializer.Deserialize<List<Summer_Camp_Status_Lookup>>(response2, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+		statusLookupRows = jsonResponse2.ToList();
+	}
+
+
+	private void enableChangeStatusButton()
+	{
+		var selectedItems = grid.SelectedItems;
+		msg = selectedItems.Count.ToString();
+		if (selectedItems.Count > 0 && !string.IsNullOrEmpty(strSetStatusTo))
+		{
+			boolChangeStatusButtonDisabled = false;
+		}
+		else
+		{
+			boolChangeStatusButtonDisabled = true;
+		}
 	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -149,23 +187,25 @@
 			StateHasChanged();
 		}
 	}
-	
+
 	private async void btnMsgbox()
 	{
+
 		var selectedItems = grid.SelectedItems;
+
 		bool? result = await DialogService.ShowMessageBox(
-			"Warning", 
-			(MarkupString) $"You are about to set the status of {selectedItems.Count} of {grid.FilteredItems.ToList().Count} records to {strSetStatusTo.Value.ToUpper()}!", 
-			yesText: "Continue", 
+			"Warning",
+			(MarkupString)$"You are about to set the status of {selectedItems.Count} of {grid.FilteredItems.ToList().Count} records to {strSetStatusTo}.",
+			yesText: "Continue",
 			cancelText: "Cancel");
 		string state = result == null ? "Canceled" : "Deleted!";
 		if (result == null)
 		{
-			_events.Insert(0, "you clicked Cancel");
+			// Cancel Update
 		}
 		else
 		{
-			_events.Insert(0, "you clicked deleted");
+			_events.Insert(0, "you clicked continue");
 		}
 		//msg = $"{items.Count} of {grid.FilteredItems.ToList().Count} Camps Selected: ";
 
@@ -175,39 +215,55 @@
 		_events.Insert(0, $"dialog result: {state}");
 	}
 
-	void btnSaveSelected()
+	private async void btnSaveSelected()
 	{
 		var selectedItems = grid.SelectedItems;
 		var jsonPayload = System.Text.Json.JsonSerializer.Serialize(selectedItems);
 
-		using var httpClient = HttpClientFactory.CreateClient();
-		var content = new StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json");
-		var httpResponseMessage = httpClient.PostAsync("https://localhost:7217/api/Registrations/summercampstatusupdate", content);
-		var response = httpResponseMessage;
-
-		if (response.Result.IsSuccessStatusCode)
+		bool? result = await DialogService.ShowMessageBox(
+			"Warning",
+			(MarkupString)$"You are about to set the status of {selectedItems.Count} of {grid.FilteredItems.ToList().Count} records to {strSetStatusTo}.",
+			yesText: "Continue",
+			cancelText: "Cancel");
+		string state = result == null ? "Cancel" : "Save";
+		if (result == null)
 		{
-			_events.Insert(0, "Data successfully saved.");
+			// Cancel Update
 		}
 		else
 		{
-			_events.Insert(0, "Failed to save data.");
-		}
+			_events.Insert(0, "you clicked continue");
 
-		_events.Insert(0, $"StatusCode: {response.Result.StatusCode}");
-		_events.Insert(0, $"Content: {response.Result.RequestMessage}");
-		_events.Insert(0, $"btnSaveSelected clicked");
-		StateHasChanged();
-	} 
+			using var httpClient = HttpClientFactory.CreateClient();
+			var content = new StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json");
+			var httpResponseMessage = httpClient.PostAsync("https://localhost:7217/api/Registrations/summercampstatusupdate", content);
+			var response = httpResponseMessage;
+
+			if (response.Result.IsSuccessStatusCode)
+			{
+				_events.Insert(0, "Data successfully saved.");
+			}
+			else
+			{
+				_events.Insert(0, "Failed to save data.");
+			}
+
+			_events.Insert(0, $"StatusCode: {response.Result.StatusCode}");
+			_events.Insert(0, $"Content: {response.Result.RequestMessage}");
+			_events.Insert(0, $"btnSaveSelected clicked");
+			StateHasChanged();
+		}
+	}
 
 	void btnSetStatus()
 	{
 		var selectedItems = grid.SelectedItems;
 		foreach (var item in selectedItems)
 		{
-			item.FK_Status = strSetStatusTo.Value.ToUpper();
+			item.FK_Status = strSetStatusTo;
 		}
-		_events.Insert(0, $"btnSetStatus clicked and set to {strSetStatusTo.Value.ToUpper()}");
+		_events.Insert(0, $"btnSetStatus clicked and set to {strSetStatusTo}");
+		boolSaveButtonDisabled = false;
 		StateHasChanged();
 	}
 
@@ -221,12 +277,13 @@
 			selectedItems.Add(item);
 		}
 		grid.SelectedItems = selectedItems;
-		
+
 		StateHasChanged();
 	}
 
 	void SelectedItemsChanged(HashSet<Summer_Camp_Main_Datagrid> items)
 	{
+		enableChangeStatusButton();
 		msg = $"{items.Count} of {grid.FilteredItems.ToList().Count} Camps Selected: ";
 		_events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
 	}
