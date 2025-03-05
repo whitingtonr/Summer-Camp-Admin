@@ -19,9 +19,9 @@
 									@* **************************************** *@
 									<MudText>Actions</MudText>
 									<MudStack Row="true">
-										<MudButton Variant="Variant.Filled" Color="Color.Primary">Show All Columns</MudButton>
+										<MudButton OnClick="btnHideColumns" Variant="Variant.Filled" Color="Color.Primary">Show All Columns</MudButton>
+										<MudButton OnClick="btnToggleFilter" Variant="Variant.Filled" Color="Color.Primary">Toggle Filter</MudButton>
 										<MudButton OnClick="btnSaveSelected" Disabled="boolSaveButtonDisabled" Variant="Variant.Filled" Color="Color.Primary">Save Selected</MudButton>
-										<MudButton OnClick="btnMsgbox" Variant="Variant.Filled" Color="Color.Primary">test</MudButton>
 										<div class="virtualPlaceholder" style="display:block; height:48px; width:1px; background:#ffffff00;">
 										</div>
 									</MudStack>
@@ -52,11 +52,11 @@
 									<MudButton Variant="Variant.Filled" Disabled="boolChangeStatusButtonDisabled" OnClick="btnSetStatus" Color="Color.Primary">Change Status</MudButton>
 									<MudItem>
 										<MudSelect T="string"
-												   Label="Select Status"
-												   Variant="Variant.Text"
-												   @bind-Value="strSetStatusTo"
-												   @bind-Value:after="enableChangeStatusButton"
-												   Dense="true">
+										Label="Select Status"
+										Variant="Variant.Text"
+										@bind-Value="strSetStatusTo"
+										@bind-Value:after="enableChangeStatusButton"
+										Dense="true">
 											@foreach (var status in statusLookupRows)
 											{
 												<MudSelectItem T="string" Value="@status.ID_Code">@status.Desc</MudSelectItem>
@@ -97,44 +97,46 @@
 		<MudCard>
 			<MudCardContent>
 				<MudDataGrid T="Summer_Camp_Main_Datagrid"
-							 @ref="grid"
-							 Dense="true"
-							 Striped="true"
-							 SortMode="SortMode.Multiple"
-							 ColumnResizeMode="ResizeMode.Column"
-							 DragDropColumnReordering="true"
-							 Bordered="true"
-							 Hover="true"
-							 Filterable="true"
-							 Hideable="true"
-							 FilterMode="@DataGridFilterMode.ColumnFilterRow"
-							 Items="@datagridRows"
-							 MultiSelection="true"
-							 RowsPerPage="100"
-							 SelectedItemsChanged="@SelectedItemsChanged">
-                    <Columns>
-                        <SelectColumn T="Summer_Camp_Main_Datagrid" />
-                        <PropertyColumn Property="x => x.ID" Title="ID" />
-                        <PropertyColumn Property="x => x.FirstName" Title="FName" />
-                        <PropertyColumn Property="x => x.LastName" Title="LName" />
-                        <PropertyColumn Property="x => x.EthnicCode" Title="Ethnic Code" />
-                        <PropertyColumn Property="x => x.FK_Status" Title="Status" />
-                        <PropertyColumn Property="x => x.FK_Student_Registration__Student_ID" Title="Student&nbsp;ID" />
-                        <PropertyColumn Property="x => x.WeekNbr" Title="Week" />
-                        <PropertyColumn Property="x => x.SchoolName" Title="School&nbsp;Name" CellStyle="white-space: nowrap;" />
-                        <PropertyColumn Property="x => x.Summer_Camp_Title" Title="Summer&nbsp;Camp&nbsp;Title" CellStyle="white-space: nowrap;" />
-                        <PropertyColumn Property="x => x.School_ID" Title="School&nbsp;ID" />
-                        <PropertyColumn Property="x => x.Location" Title="Location" />
-                        <PropertyColumn Property="x => x.Level" Title="Level" />
-                        <PropertyColumn Property="x => x.Grade" Title="Grade" />
-                        <PropertyColumn Property="x => x.CalendarYR" Title="Year" />
-                        <PropertyColumn Property="x => x.Latino" Title="Latino" />
-                        <PropertyColumn Property="x => x.Indian" Title="Indian" />
-                        <PropertyColumn Property="x => x.Asian" Title="Asian" />
-                        <PropertyColumn Property="x => x.Black" Title="Black" />
-                        <PropertyColumn Property="x => x.Pacific" Title="Pacific" />
-                        <PropertyColumn Property="x => x.White" Title="White" />
-                    </Columns>
+				@ref="grid"
+				Dense="true"
+				Striped="true"
+				SortMode="SortMode.Multiple"
+				ColumnResizeMode="ResizeMode.Column"
+				DragDropColumnReordering="true"
+				Bordered="true"
+				Hover="true"
+				Filterable="true"
+				Hideable="true"
+				FilterMode="@_filterMode"
+				Items="@datagridRows"
+				MultiSelection="true"
+				RowsPerPage="10"
+				FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
+				SelectedItemsChanged="@SelectedItemsChanged">
+					<Columns>
+						<SelectColumn T="Summer_Camp_Main_Datagrid" />
+						<PropertyColumn Property="x => x.ID" Title="ID" Hidden />
+						<PropertyColumn Property="x => x.FK_Status" Title="Status" />
+
+						<PropertyColumn Property="x => x.FirstName" Title="FName" />
+						<PropertyColumn Property="x => x.LastName" Title="LName" />
+						<PropertyColumn Property="x => x.PrimaryExceptionality" Title="Primary Exceptionality" />
+						<PropertyColumn Property="x => x.LEP" Title="LEP" />
+						<PropertyColumn Property="x => x.Gender" Title="Gender" />
+						<PropertyColumn Property="x => x.EthnicCode" Title="Ethnic Code" />
+
+						<PropertyColumn Property="x => x.CalendarYR" Title="Year" Hidden/>
+						<PropertyColumn Property="x => x.WeekNbr" Title="Week" />
+						<PropertyColumn Property="x => x.School_ID" Title="School&nbsp;ID" />
+						<PropertyColumn Property="x => x.SchoolName" Title="School&nbsp;Name" CellStyle="white-space: nowrap;" />
+						<PropertyColumn Property="x => x.Summer_Camp_Title" Title="Summer&nbsp;Camp&nbsp;Title" CellStyle="white-space: nowrap;" />
+
+						<PropertyColumn Property="x => x.UpdateUser" Title="Update User" />
+						<PropertyColumn Property="x => x.UpdateDate" Title="Update Date" />
+
+						<PropertyColumn Property="x => x.FK_PCS_StudentLookup__Student_ID" Title="Student&nbsp;ID" Hidden/>
+						<PropertyColumn Property="x => x.FK_Summer_Camp_Choice" Title="FK_Summer_Camp_Choice" Hidden/>
+					</Columns>
 					<PagerContent>
 						<div style="display: flex; justify-content: center;">
 							<MudDataGridPager T="Summer_Camp_Main_Datagrid" />
@@ -158,6 +160,7 @@
 	public bool boolSaveButtonDisabled = true;
 	private List<string> _events = new();
 	private string msg = "";
+	public DataGridFilterMode _filterMode = DataGridFilterMode.ColumnFilterRow;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -197,9 +200,16 @@
 		}
 	}
 
-	private async void btnMsgbox()
+	private async void btnToggleFilter()
 	{
-
+		if (_filterMode == DataGridFilterMode.ColumnFilterRow)
+		{
+			_filterMode = DataGridFilterMode.ColumnFilterMenu;
+		} else
+		{
+			_filterMode = DataGridFilterMode.ColumnFilterRow;
+		}
+		StateHasChanged();
 	}
 
 	private async void btnSaveSelected()
@@ -268,6 +278,14 @@
 		grid.SelectedItems = selectedItems;
 
 		StateHasChanged();
+	}
+
+	private async Task btnHideColumns()
+	{
+		foreach (var column in grid.RenderedColumns)
+		{
+				await column.ShowAsync();
+		};
 	}
 
 	void SelectedItemsChanged(HashSet<Summer_Camp_Main_Datagrid> items)

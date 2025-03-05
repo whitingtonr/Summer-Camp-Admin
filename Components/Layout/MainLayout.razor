@@ -5,7 +5,7 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudLayout>
-@* 	<MudAppBar Elevation="1">
+	<MudAppBar Elevation="1">
 		<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
 		<MudText Typo="Typo.h5" Class="ml-3">Summer Camp Admin</MudText>
 		<MudSpacer />
@@ -14,7 +14,7 @@
 	</MudAppBar>
 	<MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
 		<NavMenu />
-	</MudDrawer> *@
+	</MudDrawer>
 	<MudMainContent Class="mt-16 pa-4">
 		@Body
 	</MudMainContent>
@@ -28,7 +28,7 @@
 </div>
 
 @code {
-	private bool _drawerOpen = false;
+	private bool _drawerOpen = true;
 	private bool _isDarkMode = false;
 	private MudTheme? _theme = null;
 

@@ -7,8 +7,19 @@ namespace Summer_Camp_Admin.Models
     [Key]
     public int ID { get; set; }
 
-    [MaxLength(10)]
-    public string? FK_Student_Registration__Student_ID { get; set; }
+    public string? UpdateUser { get; set; }
+    public DateTime UpdateDate { get; set; }
+    public string? ParentEmail { get; set; }
+    public string? ParentPhone { get; set; }
+    public string? PrimaryExceptionality { get; set; }
+    public string? LEP { get; set; }
+    public string? Gender { get; set; }
+
+    public string? FK_PCS_StudentLookup__Student_ID { get; set; }
+    
+    public int? FK_Summer_Camp_Choice { get; set; }
+
+    public int? FK_Summer_Camps { get; set; }
 
     public string? FirstName { get; set; }
 
