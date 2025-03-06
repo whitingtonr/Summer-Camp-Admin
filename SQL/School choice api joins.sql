@@ -17,7 +17,7 @@ SELECT
 	choice.Status as FK_Status, 
 	choice.UpdateDate,
 	choice.UpdateUser
-FROM [Res_DB_Prod].[dbo].Summer_Camp_Choice as choice
+FROM [Res_DB].[dbo].Summer_Camp_Choice as choice
 WHERE choice.CalendarYR = '2025/2026' 
 	AND choice.Status = 'A'
 
