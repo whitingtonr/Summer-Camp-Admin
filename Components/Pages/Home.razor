@@ -2,6 +2,8 @@
 @using Summer_Camp_Admin.Models
 @using System.Text.Json
 @using System.Net.Http.Json
+@* @using System.Security.Principal *@
+
 @inject IHttpClientFactory HttpClientFactory
 @inject IDialogService DialogService
 
@@ -76,6 +78,7 @@
 			<MudCardContent>
 				<MudExpansionPanels>
 					<MudExpansionPanel Text="@msg">
+						@* <p>Current User: @WindowsIdentity.GetCurrent().Name.Split('\\').Last()</p> *@
 						@if (_events.Count > 0)
 						{
 							<div class="d-flex">
@@ -106,10 +109,11 @@
 				Bordered="true"
 				Hover="true"
 				Filterable="@_filterable"
-				Hideable="false"
+				Hideable="true"
 				FilterMode="@_filterMode"
 				Items="@datagridRows"
 				MultiSelection="true"
+				SelectOnRowClick="false"
 				RowsPerPage="100"
 				FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
 				SelectedItemsChanged="@SelectedItemsChanged">
@@ -118,6 +122,7 @@
 						<PropertyColumn Property="x => x.ID" Title="ID" Hidden />
 						<PropertyColumn Property="x => x.FK_Status" Title="Status" />
 
+						<PropertyColumn Property="x => x.FK_PCS_StudentLookup__Student_ID" Title="Student&nbsp;ID" />
 						<PropertyColumn Property="x => x.FirstName" Title="FName" />
 						<PropertyColumn Property="x => x.LastName" Title="LName" />
 						<PropertyColumn Property="x => x.PrimaryExceptionality" Title="Primary Exceptionality" />
@@ -134,7 +139,6 @@
 						<PropertyColumn Property="x => x.UpdateUser" Title="Update User" />
 						<PropertyColumn Property="x => x.UpdateDate" Title="Update Date" />
 
-						<PropertyColumn Property="x => x.FK_PCS_StudentLookup__Student_ID" Title="Student&nbsp;ID" Hidden/>
 						<PropertyColumn Property="x => x.FK_Summer_Camp_Choice" Title="FK_Summer_Camp_Choice" Hidden/>
 					</Columns>
 					<PagerContent>
@@ -163,6 +167,7 @@
 	public DataGridFilterMode _filterMode = DataGridFilterMode.ColumnFilterRow;
 	public bool _filterable = true;
 	private SortMode _sortMode = SortMode.Multiple;
+	public string strApiUrl =  "'https://localhost:7217/api/Registrations/";
 
 	// private Task<AuthenticationState> authenticationStateTask { get; set; }
 
@@ -174,8 +179,11 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		msg = "Loading...";
+		// msg = Globals.ApiUrl;
+		string strUrl = "";
 		using var httpClient = HttpClientFactory.CreateClient();
+
+		strUrl = $"{strApiUrl}summercampadmingrid";
 		var response = await httpClient.GetStringAsync("http://localhost:8080/api/Registrations/summercampadmingrid");
 		var jsonResponse = JsonSerializer.Deserialize<List<Summer_Camp_Main_Datagrid>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 		datagridRows = jsonResponse.ToList();
@@ -185,8 +193,7 @@
 		var jsonResponse2 = JsonSerializer.Deserialize<List<Summer_Camp_Status_Lookup>>(response2, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 		statusLookupRows = jsonResponse2.ToList();
 
-		// msg = "Loading...";
-		// using var httpClient = HttpClientFactory.CreateClient();
+		// strUrl = $"{strApiUrl}summercampadmingrid";
 		// var response = await httpClient.GetStringAsync("https://localhost:7217/api/Registrations/summercampadmingrid");
 		// var jsonResponse = JsonSerializer.Deserialize<List<Summer_Camp_Main_Datagrid>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 		// datagridRows = jsonResponse.ToList();
