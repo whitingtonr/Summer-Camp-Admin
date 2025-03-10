@@ -1,7 +1,8 @@
 using MudBlazor;
 using MudBlazor.Services;
 using Summer_Camp_Admin.Components;
-//using Microsoft.AspNetCore.Authentication.Negotiate;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Authentication.Negotiate;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,12 +16,14 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // Add Windows Authentication
-//builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
-//    .AddNegotiate();
-//builder.Services.AddAuthorization(options =>
-//{
-//  options.FallbackPolicy = options.DefaultPolicy;
-//});
+builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
+    .AddNegotiate();
+builder.Services.AddAuthorization(options =>
+{
+  options.FallbackPolicy = options.DefaultPolicy;
+});
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddCascadingAuthenticationState();
 
 var app = builder.Build();
 

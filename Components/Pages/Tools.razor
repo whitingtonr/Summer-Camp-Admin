@@ -1,19 +1,22 @@
 ﻿@page "/tools"
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Data Tools</PageTitle>
 
 <h1>Data Tools - Do Not Touch</h1>
 
-<MudButton Variant="Variant.Filled"
-           Color="Color.Primary"
-           OnClick="LoadOldData">
-    Load Data
-</MudButton>
+output: @msg
 
 @code
 {
-    void LoadOldData()
-    {
-        
-    }
+	private readonly IHttpContextAccessor _httpContextAccessor;
+	public string msg = "test111";
+	
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		msg = user.Identity.Name;
+	}
 }
