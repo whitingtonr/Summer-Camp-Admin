@@ -3,6 +3,7 @@ using MudBlazor.Services;
 using Summer_Camp_Admin.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authentication.Negotiate;
+using Summer_Camp_Admin.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,7 @@ builder.Services.AddMudBlazorDialog();
 builder.Services.AddHttpClient();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 
 // Add Windows Authentication
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)

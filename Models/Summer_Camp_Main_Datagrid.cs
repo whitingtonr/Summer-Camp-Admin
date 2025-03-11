@@ -14,7 +14,7 @@ namespace Summer_Camp_Admin.Models
     public string? PrimaryExceptionality { get; set; }
     public string? LEP { get; set; }
     public string? Gender { get; set; }
-
+    public string? FreeMeals { get; set; }
     public string? FK_PCS_StudentLookup__Student_ID { get; set; }
     
     public int? FK_Summer_Camp_Choice { get; set; }
@@ -24,6 +24,8 @@ namespace Summer_Camp_Admin.Models
     public string? FirstName { get; set; }
 
     public string? LastName { get; set; }
+
+    public string? SchoolName { get; set; }
 
     public string? EthnicCode { get; set; }
 
@@ -46,7 +48,7 @@ namespace Summer_Camp_Admin.Models
     public string? WeekNbr { get; set; }
 
     [MaxLength(200)]
-    public string? SchoolName { get; set; }
+    public string? CampName { get; set; }
 
     [MaxLength(4)]
     public string? School_ID { get; set; }

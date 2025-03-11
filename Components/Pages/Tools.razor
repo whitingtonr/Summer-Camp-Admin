@@ -1,6 +1,8 @@
 ﻿@page "/tools"
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Configuration
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IConfiguration Configuration
 
 <PageTitle>Data Tools</PageTitle>
 
@@ -10,13 +12,11 @@ output: @msg
 
 @code
 {
-	private readonly IHttpContextAccessor _httpContextAccessor;
-	public string msg = "test111";
-	
-	protected override async Task OnInitializedAsync()
+	public string msg = "Hello World";
+	private string baseUrl;
+
+	protected override void OnInitialized()
 	{
-		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-		var user = authState.User;
-		msg = user.Identity.Name;
+	    msg = Configuration["ApiSettings:BaseUrl"];
 	}
 }

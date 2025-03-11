@@ -7,6 +7,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IHttpClientFactory HttpClientFactory
 @inject IDialogService DialogService
+@inject IConfiguration Configuration
 
 <PageTitle>Home</PageTitle>
 
@@ -70,6 +71,31 @@
 							</MudCardContent>
 						</MudCard>
 					</MudItem>
+
+					<MudItem xs="12">
+						<MudCard>
+							<MudCardContent>
+								<MudExpansionPanels>
+									<MudExpansionPanel Text="@msg">
+										@* <p>Current User: @WindowsIdentity.GetCurrent().Name.Split('\\').Last()</p> *@
+										@if (_events.Count > 0)
+										{
+											<div class="d-flex">
+												<MudButton Class="mt-3" ButtonType="ButtonType.Button" Variant="Variant.Filled" OnClick="@(() => _events.Clear())">Clear</MudButton>
+											</div>
+										}
+										@foreach (var message in _events)
+										{
+											<MudText Typo="@Typo.body2">@message</MudText>
+
+											<br />
+										}
+									</MudExpansionPanel>
+								</MudExpansionPanels>
+							</MudCardContent>
+						</MudCard>
+					</MudItem>
+
 				</MudStack>
 			</MudCardContent>
 		</MudCard>
@@ -103,15 +129,18 @@
 						<PropertyColumn Property="x => x.FK_PCS_StudentLookup__Student_ID" Title="Student&nbsp;ID" Hidden/>
 						<PropertyColumn Property="x => x.FirstName" Title="FName" />
 						<PropertyColumn Property="x => x.LastName" Title="LName" />
+						<PropertyColumn Property="x => x.SchoolName" Title="Student School" />
+						<PropertyColumn Property="x => x.Grade" Title="Student Grade" />
 						<PropertyColumn Property="x => x.PrimaryExceptionality" Title="Primary Exceptionality" />
 						<PropertyColumn Property="x => x.LEP" Title="LEP" />
 						<PropertyColumn Property="x => x.Gender" Title="Gender" />
 						<PropertyColumn Property="x => x.EthnicCode" Title="Ethnic Code" />
+						<PropertyColumn Property="x => x.FreeMeals" Title="Meal Code" Hidden/>
 
 						<PropertyColumn Property="x => x.CalendarYR" Title="Year" Hidden />
 						<PropertyColumn Property="x => x.WeekNbr" Title="Week" />
 						<PropertyColumn Property="x => x.School_ID" Title="School&nbsp;ID" Hidden/>
-						<PropertyColumn Property="x => x.SchoolName" Title="Camp&nbsp;Location" CellStyle="white-space: nowrap;" />
+						<PropertyColumn Property="x => x.CampName" Title="Camp&nbsp;Location" CellStyle="white-space: nowrap;" />
 						<PropertyColumn Property="x => x.Summer_Camp_Title" Title="Summer&nbsp;Camp&nbsp;Title" CellStyle="white-space: nowrap;" />
 
 						<PropertyColumn Property="x => x.UpdateUser" Title="Update User" Hidden/>
@@ -147,34 +176,36 @@
 	private SortMode _sortMode = SortMode.Multiple;
 	public string strApiUrl = "'https://localhost:7217/api/Registrations/";
 	public string windowsUserName = "";
-
+	private string apiUrl = "";
+	
 	protected override async Task OnInitializedAsync()
 	{
-		string strUrl = "";
+		apiUrl = Configuration["ApiSettings:BaseUrl"];
 		using var httpClient = HttpClientFactory.CreateClient();
 
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 		var user = authState.User;
 		windowsUserName = user.Identity.Name.Split('\\').Last();
-		msg = windowsUserName;
+		// msg = windowsUserName;
 		
 		// strUrl = $"{strApiUrl}summercampadmingrid";
-		var response = await httpClient.GetStringAsync("http://localhost:8080/api/Registrations/summercampadmingrid");
+		// var response = await httpClient.GetStringAsync("http://localhost:5252/api/Registrations/summercampadmingrid");
+		var response = await httpClient.GetStringAsync(apiUrl + "/api/Registrations/summercampadmingrid");
 		var jsonResponse = JsonSerializer.Deserialize<List<Summer_Camp_Main_Datagrid>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 		datagridRows = jsonResponse.ToList();
 
 		using var httpClient2 = HttpClientFactory.CreateClient();
-		var response2 = await httpClient2.GetStringAsync("http://localhost:8080/api/Registrations/summercampstatuslookup");
+		var response2 = await httpClient2.GetStringAsync(apiUrl + "/api/Registrations/summercampstatuslookup");
 		var jsonResponse2 = JsonSerializer.Deserialize<List<Summer_Camp_Status_Lookup>>(response2, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 		statusLookupRows = jsonResponse2.ToList();
 
 		// strUrl = $"{strApiUrl}summercampadmingrid";
-		// var response = await httpClient.GetStringAsync("http:localhost:5252/api/Registrations/summercampadmingrid");
+		// var response = await httpClient.GetStringAsync("http://localhost:5252/api/Registrations/summercampadmingrid");
 		// var jsonResponse = JsonSerializer.Deserialize<List<Summer_Camp_Main_Datagrid>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 		// datagridRows = jsonResponse.ToList();
 
 		// using var httpClient2 = HttpClientFactory.CreateClient();
-		// var response2 = await httpClient2.GetStringAsync("http:localhost:5252/api/Registrations/summercampstatuslookup");
+		// var response2 = await httpClient2.GetStringAsync("http://localhost:5252/api/Registrations/summercampstatuslookup");
 		// var jsonResponse2 = JsonSerializer.Deserialize<List<Summer_Camp_Status_Lookup>>(response2, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 		// statusLookupRows = jsonResponse2.ToList();
 	}
@@ -243,7 +274,7 @@
 
 			using var httpClient = HttpClientFactory.CreateClient();
 			var content = new StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json");
-			var httpResponseMessage = httpClient.PostAsync("http://localhost:8080/api/Registrations/summercampstatusupdate", content);
+			var httpResponseMessage = httpClient.PostAsync(apiUrl + "/api/Registrations/summercampstatusupdate", content);
 			// var httpResponseMessage = httpClient.PostAsync("http://localhost:5252/api/Registrations/summercampstatusupdate", content);
 			var response = httpResponseMessage;
 
