@@ -72,29 +72,6 @@
 						</MudCard>
 					</MudItem>
 
-					<MudItem xs="12">
-						<MudCard>
-							<MudCardContent>
-								<MudExpansionPanels>
-									<MudExpansionPanel Text="@msg">
-										@* <p>Current User: @WindowsIdentity.GetCurrent().Name.Split('\\').Last()</p> *@
-										@if (_events.Count > 0)
-										{
-											<div class="d-flex">
-												<MudButton Class="mt-3" ButtonType="ButtonType.Button" Variant="Variant.Filled" OnClick="@(() => _events.Clear())">Clear</MudButton>
-											</div>
-										}
-										@foreach (var message in _events)
-										{
-											<MudText Typo="@Typo.body2">@message</MudText>
-
-											<br />
-										}
-									</MudExpansionPanel>
-								</MudExpansionPanels>
-							</MudCardContent>
-						</MudCard>
-					</MudItem>
 
 				</MudStack>
 			</MudCardContent>
